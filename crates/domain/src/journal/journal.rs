@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     account::DebitCredit,
-    journal::{JournalError::*},
+    journal::JournalError::*,
     money::{Currency, Money, MoneyError},
 };
 
@@ -14,6 +14,8 @@ pub enum JournalError {
     EmptyJournalEntry,
     #[error("Imbalanced Journal Entry: credit: {0}, debit: {1}")]
     ImbalancedJournalEntry(Money, Money),
+    #[error("Journal Line cannot have zero amount")]
+    ZeroAmountJournalLine,
     #[error("Money Error failure: {0}")]
     Money(#[from] MoneyError),
 }
@@ -32,12 +34,15 @@ pub struct JournalLine {
 }
 
 impl JournalLine {
-    pub fn new(account_id: Uuid, side: DebitCredit, amount: Money) -> Self {
-        Self {
+    pub fn new(account_id: Uuid, side: DebitCredit, amount: Money) -> Result<Self, JournalError> {
+        if amount == Money::new(0, *amount.currency()) {
+            return Err(JournalError::ZeroAmountJournalLine);
+        }
+        Ok(Self {
             account_id,
             side,
             amount,
-        }
+        })
     }
 }
 

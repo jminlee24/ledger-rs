@@ -3,7 +3,10 @@ use chrono::{NaiveDate, Utc};
 use super::*;
 use crate::{
     account::DebitCredit::{self, Credit, Debit},
-    money::{Currency, Money},
+    money::{
+        Currency::{self},
+        Money,
+    },
 };
 
 fn create_test_je(jls: Vec<JournalLine>) -> JournalEntry {
@@ -21,7 +24,7 @@ fn create_test_je(jls: Vec<JournalLine>) -> JournalEntry {
 
 fn create_test_jl(side: DebitCredit, amt: Money) -> JournalLine {
     let uuid = uuid::Uuid::now_v7();
-    JournalLine::new(uuid, side, amt)
+    JournalLine::new(uuid, side, amt).unwrap()
 }
 
 #[test]
@@ -61,27 +64,12 @@ fn unequal_lines() {
 }
 
 #[test]
-fn zero_amounts() {
-    let dl = create_test_jl(Debit, Money::new(0, Currency::USD));
-    let cl = create_test_jl(Credit, Money::new(0, Currency::USD));
-    let je = create_test_je(Vec::from([dl, cl]));
-
-    assert!(matches!(
-        je.validate(),
-        Err(JournalError::ImbalancedJournalEntry { .. })
-    ));
-}
-
-#[test]
 fn currency_mismatch() {
-    let dl = create_test_jl(Debit, Money::new(0, Currency::USD));
-    let cl = create_test_jl(Credit, Money::new(0, Currency::EUR));
+    let dl = create_test_jl(Debit, Money::new(1, Currency::USD));
+    let cl = create_test_jl(Credit, Money::new(1, Currency::EUR));
     let je = create_test_je(Vec::from([dl, cl]));
 
-    assert!(matches!(
-        je.validate(),
-        Err(JournalError::Money{ .. })
-    ));
+    assert!(matches!(je.validate(), Err(JournalError::Money { .. })));
 }
 
 #[test]
@@ -90,8 +78,12 @@ fn int_overflow() {
     let cl = create_test_jl(Debit, Money::new(1, Currency::USD));
     let je = create_test_je(Vec::from([dl, cl]));
 
-    assert!(matches!(
-        je.validate(),
-        Err(JournalError::Money{ .. })
-    ));
+    assert!(matches!(je.validate(), Err(JournalError::Money { .. })));
+}
+
+#[test]
+fn zero_journal_line() {
+    let uuid = uuid::Uuid::now_v7();
+    let jl = JournalLine::new(uuid, Debit, Money::new(0, Currency::USD));
+    assert!(matches!(jl, Err(JournalError::ZeroAmountJournalLine)));
 }

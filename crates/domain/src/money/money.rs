@@ -57,4 +57,8 @@ impl Money {
             }
         }
     }
+
+    pub fn currency(&self) -> &Currency {
+        &self.currency
+    }
 }
