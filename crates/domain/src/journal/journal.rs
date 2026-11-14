@@ -22,8 +22,6 @@ pub enum JournalError {
 
 enum JournalEntryStatus {
     Draft,
-    Balanced,
-    Invalid,
     Posted,
 }
 
