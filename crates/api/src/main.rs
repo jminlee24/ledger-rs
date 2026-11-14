@@ -2,7 +2,9 @@ use axum::{routing::get, Json, Router};
 use serde::Serialize;
 
 #[derive(Serialize)]
-struct Health { status: &'static str }
+struct Health {
+    status: &'static str,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

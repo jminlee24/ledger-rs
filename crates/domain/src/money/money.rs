@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::money::MoneyError::{InvalidCurrency, MoneyOverflow};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MoneyError {
     #[error("Int overflow")]
     MoneyOverflow,
